@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    container_name: "liveview_database"
+    environment: 
+      POSTGRES_PASSWORD: "12345"
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "liveview_notes"
+    ports:
+      - "5432:5432"

@@ -1,39 +1,48 @@
 defmodule LiveviewNotesWeb.PageLive do
   use LiveviewNotesWeb, :live_view
 
+  @topic "published_notes"
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, query: "", results: %{})}
+    LiveviewNotesWeb.Endpoint.subscribe(@topic)
+    {:ok, assign(socket, note_text: "", draft_notes: [], published_notes: [], error: "")}
   end
 
   @impl true
-  def handle_event("suggest", %{"q" => query}, socket) do
-    {:noreply, assign(socket, results: search(query), query: query)}
+  def handle_event("change_note_text", %{"note_text" => note_text}, socket) do
+    case String.length(note_text) do
+      50 -> 
+        {:noreply, assign(socket, error: "limite atingido")}
+      n when n > 50 ->
+        {:noreply, assign(socket, error: "limite atingido")}
+      _ -> 
+        {:noreply, assign(socket, note_text: note_text, error: "")}
+    end
   end
 
   @impl true
-  def handle_event("search", %{"q" => query}, socket) do
-    case search(query) do
-      %{^query => vsn} ->
-        {:noreply, redirect(socket, external: "https://hexdocs.pm/#{query}/#{vsn}")}
-
-      _ ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "No dependencies found matching \"#{query}\"")
-         |> assign(results: %{}, query: query)}
-    end
+  def handle_event("create_note", %{"note_text" => note_text}, socket) do
+    {:noreply, assign(socket, draft_notes: [note_text | socket.assigns.draft_notes])}
   end
 
-  defp search(query) do
-    if not LiveviewNotesWeb.Endpoint.config(:code_reloader) do
-      raise "action disabled when not in development"
-    end
+  @impl true
+  def handle_event("publish", %{"note" => note}, socket) do
+    Phoenix.PubSub.broadcast!(LiveviewNotes.PubSub, @topic, {:update, note})
+    {:noreply, socket}
+  end
 
-    for {app, desc, vsn} <- Application.started_applications(),
-        app = to_string(app),
-        String.starts_with?(app, query) and not List.starts_with?(desc, ~c"ERTS"),
-        into: %{},
-        do: {app, vsn}
+  @impl true
+  def handle_info({:update, note} = _info, socket) do
+    {:ok, date} = DateTime.now("Etc/UTC")
+    pub_note = %{
+      title: note,
+      published_at: date
+    }
+    socket = 
+      socket
+      |> assign(draft_notes: Enum.filter(socket.assigns.draft_notes, fn n -> n != note end))
+      |> assign(published_notes: [pub_note | socket.assigns.published_notes])
+    {:noreply, socket}
   end
 end

@@ -1,48 +1,76 @@
 <section class="phx-hero">
-  <h1><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h1>
-  <p>Peace of mind from prototype to production</p>
-
-  <form phx-change="suggest" phx-submit="search">
-    <input type="text" name="q" value="<%= @query %>" placeholder="Live dependency search" list="results" autocomplete="off"/>
-    <datalist id="results">
-      <%= for {app, _vsn} <- @results do %>
-        <option value="<%= app %>"><%= app %></option>
-      <% end %>
-    </datalist>
-    <button type="submit" phx-disable-with="Searching...">Go to Hexdocs</button>
+  <form phx-change="change_note_text" phx-submit="create_note">
+    <div class="field">
+      <label class="label" for="">
+        <p style="color: red"><%= @error %></p>
+        <div class="control">
+          <input 
+             class="input"
+             type="text" 
+             name="note_text" 
+             placeholder="Digite o que voce quiser" 
+             maxlength="50"
+             autocomplete="off"/>
+        </div>
+      </label>
+    </div>
+    <button 
+      class="button is-primary"
+      type="submit" 
+      phx-disable-with="Criando nota...">salvar</button>
   </form>
 </section>
 
-<section class="row">
-  <article class="column">
-    <h2>Resources</h2>
-    <ul>
-      <li>
-        <a href="https://hexdocs.pm/phoenix/overview.html">Guides &amp; Docs</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix">Source</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix/blob/v1.5/CHANGELOG.md">v1.5 Changelog</a>
-      </li>
-    </ul>
-  </article>
-  <article class="column">
-    <h2>Help</h2>
-    <ul>
-      <li>
-        <a href="https://elixirforum.com/c/phoenix-forum">Forum</a>
-      </li>
-      <li>
-        <a href="https://webchat.freenode.net/?channels=elixir-lang">#elixir-lang on Freenode IRC</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/elixirphoenix">Twitter @elixirphoenix</a>
-      </li>
-      <li>
-        <a href="https://elixir-slackin.herokuapp.com/">Elixir on Slack</a>
-      </li>
-    </ul>
-  </article>
-</section>
+<%= if @draft_notes == [] and @published_notes == [] do %>
+  <h2 class="title">Nao ha notas, crie uma!</h2>
+<% else %>
+  <div class="columns">
+    <div class="column">
+      <h1 class="title">Notas em rascunho</h1>
+      <br>
+      <ul>
+        <%= for note <- @draft_notes do %>
+          <li style="margin-bottom: 5%">
+            <div class="card" style="background-color: #27ae60">
+              <div class="card-content">
+                <div class="content" style="color: #fff">
+                  <%= note %>
+                </div>
+              </div>
+              <footer class="card-footer" style="padding: 15px">
+                <button 
+                  type="button"
+                  class="button is-primary card-footer-item"
+                  phx-click="publish"
+                  phx-value-note="<%= note %>"
+                  >
+                  publicar
+                </button>
+              </footer>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="column">
+      <h1 class="title">Notas publicadas</h1>
+      <br>
+      <ul>
+        <%= for note <- @published_notes do %>
+          <li style="margin-bottom: 5%">
+            <div class="card" style="background-color: #27ae60">
+              <div class="card-content">
+                <div class="content" style="color: #fff">
+                  <%= note.title %>
+                </div>
+              </div>
+              <footer class="card-footer" style="padding: 15px">
+                <i>Publicado em: <%= note.published_at %></i>
+              </footer>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+<% end %>

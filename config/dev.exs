@@ -3,8 +3,8 @@ use Mix.Config
 # Configure your database
 config :liveview_notes, LiveviewNotes.Repo,
   username: "postgres",
-  password: "postgres",
-  database: "liveview_notes_dev",
+  password: "12345",
+  database: "liveview_notes",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
