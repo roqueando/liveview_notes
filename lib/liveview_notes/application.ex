@@ -7,8 +7,6 @@ defmodule LiveviewNotes.Application do
 
   def start(_type, _args) do
     children = [
-      # Start the Ecto repository
-      LiveviewNotes.Repo,
       # Start the Telemetry supervisor
       LiveviewNotesWeb.Telemetry,
       # Start the PubSub system
